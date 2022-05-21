@@ -1,0 +1,44 @@
+#!/usr/bin/env ruby
+
+# frozen_string_literal: true
+
+require 'sandbox'
+require 'vortex'
+
+PROMPT = 'Vortex> '
+BANNER = <<~BANNER
+  OverTheWire wargame Vortex solution tool
+BANNER
+
+SHELL = Sandbox::Shell.new(
+  prompt: PROMPT,
+  banner: BANNER
+)
+
+VORTEX = Vortex::Wargame.new(SHELL)
+
+SHELL.add_command(
+  :exec,
+  description: 'Run the level',
+  params: ['<n>'],
+  aliases: [:l]
+) do |tokens|
+  level = tokens[1].to_i
+
+  VORTEX.exec(level)
+end
+
+SHELL.command(:exec).completion do |line|
+  list = VORTEX.levels.select { |l| l.to_s =~ /^#{Regexp.escape(line)}/ }
+  list.map(&:to_s)
+end
+
+SHELL.add_command(
+  :list,
+  description: 'List available levels'
+) do |_tokens, shell|
+  levels = VORTEX.levels.join(', ')
+  shell.puts(levels)
+end
+
+SHELL.run
